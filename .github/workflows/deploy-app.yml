@@ -30,8 +30,10 @@ jobs:
           uses: azure/CLI@v1
           with: 
             inlineScript: |
-                echo "REGISTRY_USERNAME=$(az keyvault secret show --name ${{env.KEW_VAULT_SECRET_NAME_ACR_USERNAME}}
-                echo "REGISTRY_PASSWORD=$(az keyvault secret show --name ${{env.KEW_VAULT_SECRET_NAME_ACR_PASSWORD}}
+                echo "REGISTRY_USERNAME=$(az keyvault secret show --name ${{env.KEW_VAULT_SECRET_NAME_ACR_USERNAME}} --vault-name ${{env.KEW_VAULT_NAME}} --query value -o tsv)"
+                echo "REGISTRY_PASSWORD=$(az keyvault secret show --name ${{env.KEW_VAULT_SECRET_NAME_ACR_PASSWORD}} --vault-name ${{env.KEW_VAULT_NAME}} --query value -o tsv)"
+                echo "REGISTRY_USERNAME=$REGISTRY_USERNAME" >> $GITHUB_ENV
+                echo "REGISTRY_PASSWORD=$REGISTRY_PASSWORD" >> $GITHUB_ENV
 
         - name: 'Login Docker Registry'
           uses: azure/docker-login@v1
@@ -41,18 +43,18 @@ jobs:
             password: ${{env.REGISTRY_PASSWORD}}
 
         - name: 'Set image Version'
-            id: image-version
-            run: echo ::set-output name=version::$(echo $GITHUB_REF#refs/heads/})-$(date +'%Y.%m.%d.%H%M')"
+          id: image-version
+          run: echo ::set-output name=version::$(echo $GITHUB_REF | sed 's#refs/heads/##')-$(date +'%Y.%m.%d.%H%M')
 
         - name: 'Build and push image'
-            working-directory: ./app
-            run: |
-                docker build . -t ${{env.REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:${{ steps.image-version.outputs.version }}
-                docker build . -t ${{env.REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:${{ github.ref_name }}-latest
-                docker push ${{env.REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:${{ steps.image-version.outputs.version }}
-                docker push ${{env.REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:${{ github.ref_name }}-latest
-        outputs:
-            imageVersion: ${{ steps.image-version.outputs.version }}
+          working-directory: ./app
+          run: |
+              docker build . -t ${{env.REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:${{ steps.image-version.outputs.version }}
+              docker push ${{env.REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:${{ steps.image-version.outputs.version }}
+              docker tag ${{env.REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:${{ steps.image-version.outputs.version }} ${{env.REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:latest
+              docker push ${{env.REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:latest
+          outputs:
+              imageVersion: ${{ steps.image-version.outputs.version }}
 
     deploy:
         runs-on: ubuntu-latest
@@ -64,12 +66,9 @@ jobs:
           with:
             creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-        - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-            app-name: ${{env.AZURE_WEBAPP_NAME}}
-            images: '${{env. REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:${{needs.build.outputs.imageVersion}}'
-                
-        
-          
+        - name: 'Deploy to Azure Web App'
+          id: deploy-to-webapp
+          uses: azure/webapps-deploy@v2
+          with:
+              app-name: ${{env.AZURE_WEBAPP_NAME}}
+              images: '${{env.REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:${{needs.build.outputs.imageVersion}}'
