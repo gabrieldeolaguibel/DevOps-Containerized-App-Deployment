@@ -1,0 +1,67 @@
+name: deploy-infra
+
+on:
+  push:
+      paths:
+        - 'infra/**'
+  workflow_dispatch:
+
+env:
+  RESOURCE_GROUP_DEV: aguadamillas_resources
+  SUBSCRIPTION_ID_DEV: e0b9cada-61bc-4b5a-bd7a-52c606726b6b
+  USER_ALIAS: aguadamillas
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      # Checkout code
+    - uses: actions/checkout@main
+
+    # Lint Bicep code
+    - name: Run Bicep Linter
+      run: az bicep build --file ./infra/key-vault.bicep
+
+      # Lint Bicep code
+    - name: Run Bicep Linter
+      run: az bicep build --file ./infra/main.bicep
+
+  deploy:
+#   if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+       name: 'Development'
+
+    steps:
+
+      # Checkout code
+    - uses: actions/checkout@main
+   
+      # Log into Azure
+    - uses: azure/login@v1
+      with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+            
+      # Deploy Key Vault so that it can be referenced by the main.bicep file
+    - name: deploy-key-vault
+      uses: azure/arm-deploy@v1.0.9
+      with:
+        subscriptionId: ${{ env.SUBSCRIPTION_ID_DEV }}
+        resourceGroupName: ${{ env.RESOURCE_GROUP_DEV }}
+        template: ./infra/key-vault.bicep
+        parameters: ./infra/parameters/key-vault.json
+        deploymentName: '${{ env.USER_ALIAS }}-kv'
+        failOnStdErr: false 
+
+      # Deploy Bicep file
+    - name: deploy-main
+      uses: azure/arm-deploy@v1.0.9
+      with:
+        subscriptionId: ${{ env.SUBSCRIPTION_ID_DEV }}
+        resourceGroupName: ${{ env.RESOURCE_GROUP_DEV }}
+        template: ./infra/main.bicep
+        parameters: ./infra/parameters/main.json
+        deploymentName: ${{ env.USER_ALIAS }}
+        failOnStdErr: false
