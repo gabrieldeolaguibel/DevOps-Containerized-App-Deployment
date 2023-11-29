@@ -50,12 +50,23 @@ module website 'modules/web/site/main.bicep' = {
   dependsOn: [
     serverfarm
     containerRegistry
-    keyVault
+    keyvault
   ]
   name: '${uniqueString(deployment().name)}-site'
   params: {
     name: siteName
-    location: 
-
+    location: location
+    kind: 'app'
+    serverFarmResourceId: resourceId('Microsoft.Web/serverfarms', appServicePlanName)
+    siteConfig: {
+      linuxFxVersion: 'DOCKER|${containerRegistryName}.azurecr.io/${containerRegistryImageName}:${containerRegistryImageVersion}'
+      appCommandLine: ''
+    }
+    appSettingsKeyValuePairs: {
+      WEBSITES_ENABLE_APP_SERVICE_STORAGE: false
+    }
+    dockerRegistryServerUrl: 'https://${containerRegistryName}.azurecr.io'
+    dockerRegistryServerUserName: keyvault.getSecret(keyVaultSecretNameACRUsername)
+    dockerRegistryServerPassword: keyvault.getSecret(keyVaultSecretNameACRPassword1)
   }
 }
