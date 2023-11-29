@@ -1,30 +1,61 @@
 param keyVaultName string
-param containterRegistryName string
-param conttainerRegistryImageName string
-param conttainerRegistryImageVersion string = 'main-latest'
+param containerRegistryName string
+param containerRegistryImageName string
+param containerRegistryImageVersion string = 'main-latest'
 param appServicePlanName string
 param siteName string
-param siteLocation string = resourceGroup().location
+param location string = resourceGroup().location
 param keyVaultSecretNameACRUsername string = 'acr-username'
 param keyVaultSecretNameACRPassword1 string = 'acr-password1'
 param keyVaultSecretNameACRPassword2 string = 'acr-password2'
 
-resource keyVault 'Mircrosoft.KeyVault@2023-02-01' existing = {
+resource keyvault 'Mircrosoft.KeyVault/vaults@2023-02-01' existing = {
   name: keyVaultName
 }
 
-resource containerRegistry 'modules/container-registry/registry/main.bicep' = {
+module containerRegistry 'modules/container-registry/registry/main.bicep' = {
   dependsOn: [
-    keyVault
+    keyvault
   ]
   name: '${uniqueString(deployment().name)}-acr'
   params: {
-    name: containterRegistryName
+    name: containerRegistryName
     location: location  
     acrAdminUserEnabled: true
     adminCredentialsKeyVaultResourceId: resourceId('Microsoft.KeyVault/vaults', keyVaultName)
     adminCredentialsKeyVaultSecretUserName: keyVaultSecretNameACRUsername
     adminCredentialsKeyVaultSecretPassword1: keyVaultSecretNameACRPassword1
     adminCredentialsKeyVaultSecretPassword2: keyVaultSecretNameACRPassword2
+  }
+}
+
+module serverfarm 'modules/web/serverfarm/main.bicep' = {
+  name: '${uniqueString(deployment().name)}-asp'
+  params: {
+    name: appServicePlanName
+    location: location
+    sku: {
+      capacity: '1'
+      family: 'B'
+      name: 'B1'
+      size: 'B1'
+      tier: 'Basic'
+    }
+    kind: 'Linux'
+    reserved: true
+  }
+}
+
+module website 'modules/web/site/main.bicep' = {
+  dependsOn: [
+    serverfarm
+    containerRegistry
+    keyVault
+  ]
+  name: '${uniqueString(deployment().name)}-site'
+  params: {
+    name: siteName
+    location: 
+
   }
 }
