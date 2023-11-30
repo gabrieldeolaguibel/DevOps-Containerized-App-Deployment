@@ -42,7 +42,7 @@ jobs:
 
         - name: 'Set image Version'
           id: image-version
-          run: echo ::set-output name=version::$(echo $GITHUB_REF | sed 's#refs/heads/##')-$(date +'%Y.%m.%d.%H%M')
+          run: echo ::set-output name=version::$(echo $GITHUB_REF | sed 's#refs/heads/##')-$(date +'%Y.%m.%d.%H.%M')
 
         - name: 'Build and push image'
           working-directory: ./app
