@@ -5,9 +5,9 @@ param containerRegistryImageVersion string = 'main-latest'
 param appServicePlanName string
 param siteName string
 param location string = resourceGroup().location
-param kevVaultSecretNameACRUsername string = 'acr-username'
-param kevVaultSecretNameACRPassword1 string = 'acr-password1'
-param kevVaultSecretNameACRPassword2 string = 'acr-password2'
+param keyVaultSecretNameACRUsername string = 'acr-username'
+param keyVaultSecretNameACRPassword1 string = 'acr-password1'
+param keyVaultSecretNameACRPassword2 string = 'acr-password2'
 
 resource keyvault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
   name: keyVaultName
@@ -22,9 +22,9 @@ module containerRegistry 'modules/container-registry/registry/main.bicep' = {
     location: location
     acrAdminUserEnabled: true
     adminCredentialsKeyVaultResourceId: resourceId('Microsoft.KeyVault/vaults', keyVaultName)
-    adminCredentialsKeyVaultSecretUserName: kevVaultSecretNameACRUsername
-    adminCredentialsKeyVaultSecretUserPassword1: kevVaultSecretNameACRPassword1
-    adminCredentialsKeyVaultSecretUserPassword2: kevVaultSecretNameACRPassword2
+    adminCredentialsKeyVaultSecretUserName: keyVaultSecretNameACRUsername
+    adminCredentialsKeyVaultSecretUserPassword1: keyVaultSecretNameACRPassword1
+    adminCredentialsKeyVaultSecretUserPassword2: keyVaultSecretNameACRPassword2
   }
 }
 
@@ -63,8 +63,8 @@ module website 'modules/web/site/main.bicep' =  {
     appSettingsKeyValuePairs: {
       WEBSITES_ENABLE_APP_SERVICE_STORAGE: false
       dockerRegistryServerUrl: 'https://${containerRegistryName}.azurecr.io'
-      dockerRegistryServerUserName: kevVaultSecretNameACRUsername
-      dockerRegistryServerPassword: kevVaultSecretNameACRPassword1
+      dockerRegistryServerUserName: keyVaultSecretNameACRUsername
+      dockerRegistryServerPassword: keyVaultSecretNameACRPassword1
 
     }
   }
