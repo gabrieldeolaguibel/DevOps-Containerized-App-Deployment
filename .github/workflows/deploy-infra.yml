@@ -19,19 +19,18 @@ jobs:
       # Checkout code
     - uses: actions/checkout@main
 
-    # print current directory
-    - name: Print current directory
-      run: pwd
-
     # Lint Bicep code (key-vault.bicep)
     - name: Run Bicep Linter for Key Vault
-      run: az bicep build --file key-vault.bicep
-      working-directory: ./Infra
+      run: |
+        cd ./Infra
+        az bicep build --file key-vault.bicep
+      
 
       # Lint Bicep code (main.bicep)
-    - name: Run Bicep Linter
-      run: az bicep build --file main.bicep
-      working-directory: ./Infra
+    - name: Run Bicep Linter for Main
+      run: | 
+        cd ./Infra
+        az bicep build --file main.bicep
 
   deploy:
 #   if: github.ref == 'refs/heads/dev'
