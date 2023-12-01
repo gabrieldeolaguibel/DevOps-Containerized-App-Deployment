@@ -19,6 +19,10 @@ jobs:
       # Checkout code
     - uses: actions/checkout@main
 
+    # print current directory
+    - name: Print current directory
+      run: pwd
+
     # Lint Bicep code (key-vault.bicep)
     - name: Run Bicep Linter for Key Vault
       run: az bicep build --file key-vault.bicep
