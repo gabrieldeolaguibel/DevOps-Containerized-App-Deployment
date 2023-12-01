@@ -3,19 +3,19 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "keyVaultName": {
-            "value": "aguadamillas-kv"
+            "value": "gdeolaguibel-kv"
         },
         "containerRegistryName": {
-            "value": "aguadamillasacr"
+            "value": "gdeolaguibelacr"
         },
         "appServicePlanName": {
-            "value": "aguadamillas-asp"
+            "value": "gdeolaguibel-asp"
         },
         "siteName": {
-            "value": "aguadamillas-ex3"
+            "value": "gdeolaguibel-ex3"
         },
         "containerRegistryImageName": {
-            "value": "aguadamillasapp-ex3"
+            "value": "gdeolaguibelapp-ex3"
         }
     }
 }
