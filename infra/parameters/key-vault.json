@@ -1,12 +1,21 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "metadata": {
-      "_generator": {
-        "name": "bicep",
-        "version": "0.20.4.51522",
-        "templateHash": "2852890936976905827"
-      }
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "keyVaultName": {
+      "value": "felixgg-kv"
     },
-    "resources": []
+    "location": {
+      "value": "North Europe"
+    },
+    "roleAssignments": {
+      "value": [
+        {
+          "principalId": "7200f83e-ec45-4915-8c52-fb94147cfe5a",
+          "roleDefinitionIdOrName": "Key Vault Secrets User",
+          "principalType": "ServicePrincipal"
+        }
+      ]
+    }
   }
+}
