@@ -3,10 +3,10 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "keyVaultName": {
-      "value": "felixgg-kv"
+      "value": "gdeolaguibel-kv"
     },
     "location": {
-      "value": "North Europe"
+      "value": "East Asia"
     },
     "roleAssignments": {
       "value": [
