@@ -40,7 +40,6 @@ module serverfarm 'modules/web/serverfarm/main.bicep' = {
       size: 'B1'
       tier: 'Basic'
     }
-    kind: 'linux'
     reserved: true
   }
 }
