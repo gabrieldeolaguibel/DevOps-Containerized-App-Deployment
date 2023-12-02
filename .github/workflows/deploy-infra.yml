@@ -21,7 +21,9 @@ jobs:
 
     # Lint Bicep code (key-vault.bicep)
     - name: Run Bicep Linter for Key Vault
-      run: az bicep build --file /infra/key-vault.bicep
+      run: |
+        pwd
+        az bicep build --file /infra/key-vault.bicep
       
 
       # Lint Bicep code (main.bicep)
