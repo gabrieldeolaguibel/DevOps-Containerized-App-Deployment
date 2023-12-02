@@ -29,7 +29,10 @@ jobs:
 
       # Lint Bicep code (main.bicep)
     - name: Run Bicep Linter for Main
-      run: az bicep build --file /infra/main.bicep
+      run: |
+        pwd
+        cd infra
+        az bicep build --file main.bicep
 
   deploy:
     #     if: github.ref == 'refs/heads/dev'
