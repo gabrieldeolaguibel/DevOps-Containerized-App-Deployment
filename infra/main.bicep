@@ -34,7 +34,7 @@ module serverfarm 'modules/web/serverfarm/main.bicep' = {
     name: appServicePlanName
     location: location
     sku: {
-      capacity: 1
+      capacity: '1'
       family: 'B'
       name: 'B1'
       size: 'B1'
