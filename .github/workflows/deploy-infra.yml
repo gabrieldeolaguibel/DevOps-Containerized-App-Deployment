@@ -21,19 +21,15 @@ jobs:
 
     # Lint Bicep code (key-vault.bicep)
     - name: Run Bicep Linter for Key Vault
-      run: |
-        cd ./Infra
-        az bicep build --file key-vault.bicep
+      run: az bicep build --file /infra/key-vault.bicep
       
 
       # Lint Bicep code (main.bicep)
     - name: Run Bicep Linter for Main
-      run: | 
-        cd ./Infra
-        az bicep build --file main.bicep
+      run: az bicep build --file /infra/main.bicep
 
   deploy:
-#   if: github.ref == 'refs/heads/dev'
+    #     if: github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     needs: build
     environment:
