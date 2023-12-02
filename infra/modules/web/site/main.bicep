@@ -152,6 +152,14 @@ param hybridConnectionRelays array = []
 ])
 param publicNetworkAccess string = ''
 
+param dockerRegistryServerUrl string = ''
+
+@secure()
+param dockerRegistryServerUserName string = ''
+
+@secure()
+param dockerRegistryServerPassword string = ''
+
 var formattedUserAssignedIdentities = reduce(map((managedIdentities.?userAssignedResourceIds ?? []), (id) => { '${id}': {} }), {}, (cur, next) => union(cur, next)) // Converts the flat array to an object like { '${id1}': {}, '${id2}': {} }
 
 var identity = !empty(managedIdentities) ? {
@@ -220,6 +228,12 @@ resource app 'Microsoft.Web/sites@2022-09-01' = {
   }
 }
 
+var dockerAppSettings = {
+  DOCKER_REGISTRY_SERVER_URL: dockerRegistryServerUrl
+  DOCKER_REGISTRY_SERVER_USERNAME: dockerRegistryServerUserName
+  DOCKER_REGISTRY_SERVER_PASSWORD: dockerRegistryServerPassword
+}
+
 module app_appsettings 'config--appsettings/main.bicep' = if (!empty(appSettingsKeyValuePairs)) {
   name: '${uniqueString(deployment().name, location)}-Site-Config-AppSettings'
   params: {
@@ -228,7 +242,7 @@ module app_appsettings 'config--appsettings/main.bicep' = if (!empty(appSettings
     storageAccountResourceId: storageAccountResourceId
     appInsightResourceId: appInsightResourceId
     setAzureWebJobsDashboard: setAzureWebJobsDashboard
-    appSettingsKeyValuePairs: appSettingsKeyValuePairs
+    appSettingsKeyValuePairs: union(appSettingsKeyValuePairs,dockerAppSettings)
     enableDefaultTelemetry: enableReferencedModulesTelemetry
   }
 }
