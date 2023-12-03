@@ -8,14 +8,10 @@ param location string = resourceGroup().location
 param keyVaultSecretNameACRUsername string = 'acr-username'
 param keyVaultSecretNameACRPassword1 string = 'acr-password1'
 param keyVaultSecretNameACRPassword2 string = 'acr-password2'
-param acrExists bool
 
 resource keyvault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
   name: keyVaultName
 }
-
-var dockerUsername = acrExists ? keyvault.getSecret(keyVaultSecretNameACRUsername) : 'placeholder'
-var dockerPassword = acrExists ? keyvault.getSecret(keyVaultSecretNameACRPassword1) : 'placeholder'
 
 module containerRegistry 'modules/container-registry/registry/main.bicep' = {
   dependsOn: [
@@ -69,8 +65,8 @@ module website 'modules/web/site/main.bicep' =  {
       WEBSITES_ENABLE_APP_SERVICE_STORAGE: false
     }
       dockerRegistryServerUrl: 'https://${containerRegistryName}.azurecr.io'
-      dockerRegistryServerUserName: dockerUsername
-      dockerRegistryServerPassword: dockerPassword
+      dockerRegistryServerUserName: keyvault.getSecret(keyVaultSecretNameACRUsername)
+      dockerRegistryServerPassword: keyvault.getSecret(keyVaultSecretNameACRPassword1)
 
     }
   }

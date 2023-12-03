@@ -57,6 +57,15 @@ jobs:
       run: |
         exists=$(az acr show --name ${{ env.CONTAINER_REGISTRY_NAME }} --query 'id' -o tsv)
         echo "ACR_EXISTS=${exists:-false}" >> $GITHUB_ENV
+
+     # Conditional Parameters based on ACR existence
+    - name: Set Parameters
+      run: |
+        if [ -z "$ACR_EXISTS" ]; then
+          echo "ACR_PARAMS=acrUsername='placeholder' acrPassword='placeholder'" >> $GITHUB_ENV
+        else
+          # ACR exists, so use Key Vault secrets in the Bicep file
+          echo "ACR_PARAMS=" >> $GITHUB_ENV
             
       # Deploy Key Vault so that it can be referenced by the main.bicep file
     - name: deploy-key-vault
@@ -77,6 +86,6 @@ jobs:
         subscriptionId: ${{ env.SUBSCRIPTION_ID_DEV }}
         resourceGroupName: ${{ env.RESOURCE_GROUP_DEV }}
         template: ./infra/main.bicep
-        parameters: ./infra/parameters/main.json acrExists=${{ env.ACR_EXISTS }}
+        parameters: ./infra/parameters/main.json ${{ env.ACR_PARAMS }}
         deploymentName: '${{ env.USER_ALIAS }}-kv'
         failOnStdErr: false
