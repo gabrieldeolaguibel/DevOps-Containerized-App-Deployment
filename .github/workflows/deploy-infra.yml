@@ -66,6 +66,7 @@ jobs:
         else
           # ACR exists, so use Key Vault secrets in the Bicep file
           echo "ACR_PARAMS=" >> $GITHUB_ENV
+        fi
             
       # Deploy Key Vault so that it can be referenced by the main.bicep file
     - name: deploy-key-vault
