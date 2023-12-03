@@ -10,6 +10,7 @@ env:
   RESOURCE_GROUP_DEV: aguadamillas_students_1
   SUBSCRIPTION_ID_DEV: e0b9cada-61bc-4b5a-bd7a-52c606726b3b
   USER_ALIAS: gdeolaguibel
+  CONTAINER_REGISTRY_NAME: gdeolaguibelacr
 
 jobs:
   build:
@@ -42,7 +43,6 @@ jobs:
        name: 'Development'
 
     steps:
-
       # Checkout code
     - uses: actions/checkout@main
    
@@ -50,6 +50,13 @@ jobs:
     - uses: azure/login@v1
       with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # check if ACR exists
+    - name: Check ACR existance
+      id: check_acr
+      run: |
+        exists=$(az acr show --name ${{ env.CONTAINER_REGISTRY_NAME }} --query 'id' -o tsv)
+        echo "ACR_EXISTS=${exists:-false}" >> $GITHUB_ENV
             
       # Deploy Key Vault so that it can be referenced by the main.bicep file
     - name: deploy-key-vault
@@ -70,6 +77,6 @@ jobs:
         subscriptionId: ${{ env.SUBSCRIPTION_ID_DEV }}
         resourceGroupName: ${{ env.RESOURCE_GROUP_DEV }}
         template: ./infra/main.bicep
-        parameters: ./infra/parameters/main.json
+        parameters: ./infra/parameters/main.json acrExists=${{ env.ACR_EXISTS }}
         deploymentName: '${{ env.USER_ALIAS }}-kv'
         failOnStdErr: false
