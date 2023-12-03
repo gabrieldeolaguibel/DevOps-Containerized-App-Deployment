@@ -12,6 +12,7 @@ env:
     KEW_VAULT_NAME: 'gdeolaguibel-kv'
     IMAGE_BASE_NAME: 'gdeolaguibelapp-ex3'
     AZURE_WEBAPP_NAME: 'gdeolaguibel-ex3'
+    CONTAINER_REGISTRY_NAME: 'gdeolaguibelacr'
 
 jobs:
     build:
@@ -64,9 +65,20 @@ jobs:
           with:
             creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-        - name: 'Deploy to Azure Web App'
-          id: deploy-to-webapp
-          uses: azure/webapps-deploy@v3
-          with:
+        - name: 'Check if ACR exists'
+          id: check-acr
+          run: |
+            exists exists=$(az acr show --name ${{env.CONTAINER_REGISTRY_NAME}} --query 'id' -o tsv)
+            echo "::set-output name=acr_exists::${exists}"
+
+        - name: 'Deploy Bicep template with conditional ACR handling'
+          run: |
+            if [ -z "${{ steps.check_acr.outputs.acr_exists }}" ]; then
+              # ACR does not exist, deploy with placeholder credentials
+              az deployment group create --template-file main.bicep --parameters keyVaultSecretNameACRUsername='placeholder' keyVaultSecretNameACRPassword1='placeholder'
+            else
+              # ACR exists, deploy with real credentials
+              az deployment group create --template-file main.bicep
+            with:
               app-name: ${{env.AZURE_WEBAPP_NAME}}
               images: ${{env.REGISTRY_LOGIN_SERVER}}/${{env.IMAGE_BASE_NAME}}:${{needs.build.outputs.imageVersion}}
