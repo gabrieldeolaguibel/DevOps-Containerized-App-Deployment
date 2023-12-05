@@ -10,7 +10,6 @@ env:
   RESOURCE_GROUP_DEV: aguadamillas_students_1
   SUBSCRIPTION_ID_DEV: e0b9cada-61bc-4b5a-bd7a-52c606726b3b
   USER_ALIAS: gdeolaguibel
-  CONTAINER_REGISTRY_NAME: gdeolaguibelacr
 
 jobs:
   build:
@@ -50,25 +49,8 @@ jobs:
     - uses: azure/login@v1
       with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      # check if ACR exists
-    - name: Check ACR existance
-      id: check_acr
-      run: |
-        exists=$(az acr show --name ${{ env.CONTAINER_REGISTRY_NAME }} --query 'id' -o tsv)
-        echo "ACR_EXISTS=${exists:-false}" >> $GITHUB_ENV
-
-     # Conditional Parameters based on ACR existence
-    - name: Set Parameters
-      run: |
-        if [ -z "$ACR_EXISTS" ]; then
-          echo "ACR_PARAMS=acrUsername='placeholder' acrPassword='placeholder'" >> $GITHUB_ENV
-        else
-          # ACR exists, so use Key Vault secrets in the Bicep file
-          echo "ACR_PARAMS=" >> $GITHUB_ENV
-        fi
             
-      # Deploy Key Vault so that it can be referenced by the main.bicep file
+      # Deploy Key Vault 
     - name: deploy-key-vault
       uses: azure/arm-deploy@v1.0.9
       with:
@@ -83,10 +65,9 @@ jobs:
     - name: deploy-main
       uses: azure/arm-deploy@v1.0.9
       with:
-        scope: resourcegroup
         subscriptionId: ${{ env.SUBSCRIPTION_ID_DEV }}
         resourceGroupName: ${{ env.RESOURCE_GROUP_DEV }}
         template: ./infra/main.bicep
-        parameters: ./infra/parameters/main.json ${{ env.ACR_PARAMS }}
+        parameters: ./infra/parameters/main.json
         deploymentName: '${{ env.USER_ALIAS }}-kv'
         failOnStdErr: false
