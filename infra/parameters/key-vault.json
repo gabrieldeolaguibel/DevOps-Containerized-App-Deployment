@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "keyVaultName": {
-      "value": "gadeolaguibel-kv"
+      "value": "gdeolaguibel-kv"
     },
     "location": {
       "value": "East Asia"
@@ -18,7 +18,7 @@
       ]
     },
     "containerRegistryName": {
-      "value": "gadeolaguibelacr"
+      "value": "gdeolaguibelacr"
     }
   }
 }
